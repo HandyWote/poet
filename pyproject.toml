@@ -1,16 +1,10 @@
 [project]
 name = "poet"
 version = "0.1.0"
-description = "Add your description here"
-authors = [
-    { name = "HandyWote", email = "18666119673@163.com" }
-]
+description = "唐诗宋词提取工具"
 requires-python = ">=3.12"
 dependencies = []
 
-[project.scripts]
-poet = "poet:main"
-
-[build-system]
-requires = ["uv_build>=0.12.2,<0.13.0"]
-build-backend = "uv_build"
+# 不把项目当包来构建，uv 只负责创建虚拟环境和运行脚本
+[tool.uv]
+package = false
