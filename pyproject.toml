@@ -1,0 +1,16 @@
+[project]
+name = "poet"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "HandyWote", email = "18666119673@163.com" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+poet = "poet:main"
+
+[build-system]
+requires = ["uv_build>=0.12.2,<0.13.0"]
+build-backend = "uv_build"
