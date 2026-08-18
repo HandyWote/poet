@@ -3,8 +3,27 @@ name = "poet"
 version = "0.1.0"
 description = "唐诗宋词提取工具"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "matplotlib>=3.11.1",
+]
 
 # 不把项目当包来构建，uv 只负责创建虚拟环境和运行脚本
 [tool.uv]
 package = false
+
+# Zed 默认用 basedpyright 做 Python LSP，它把 unknown/any 类检查默认全开（比 pyright 严格），
+# 本项目代码没有类型标注，这些警告全是噪声，统一关掉。真错误（语法错误、缺依赖、Python2 遗留代码）不受影响。
+[tool.basedpyright]
+# data/chinese-poetry-raw 是下载来的第三方原始数据仓库（Python2 遗留代码、缺依赖），排除不检查
+# （路径相对于 pyproject.toml 所在目录）
+exclude = [".venv", "data/chinese-poetry-raw"]
+
+reportAny = "none"
+reportUnknownMemberType = "none"
+reportUnknownVariableType = "none"
+reportUnknownParameterType = "none"
+reportUnknownArgumentType = "none"
+reportMissingParameterType = "none"
+reportMissingTypeArgument = "none"
+reportUnusedCallResult = "none"
+reportUnannotatedClassAttribute = "none"
