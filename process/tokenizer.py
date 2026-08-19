@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from collections import Counter
 import matplotlib.pyplot as plt
+import numpy as np
 
 # 让 matplotlib 能显示中文（按顺序尝试系统里的中文字体）
 plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'PingFang SC', 'Hiragino Sans GB', 'STHeiti', 'SimHei']
@@ -97,33 +98,45 @@ def write_vocab(vocab, re_vocab, save_path=DATA_DIR / 'poetry-set' ):
     with open(save_path / 're_vocab.json', 'w', encoding='utf-8') as f:
         json.dump(re_vocab, f, ensure_ascii=False, indent=2)
 
-def load_vocab(save_path=DATA_DIR / 'poetry-set'):
-    with open(save_path / 'vocab.json', 'r', encoding='utf-8') as f:
+def load_vocab(name='vocab.json', save_path=DATA_DIR / 'poetry-set'):
+    with open(save_path / name, 'r', encoding='utf-8') as f:
         vocab = json.load(f)
-    with open(save_path / 're_vocab.json', 'r', encoding='utf-8') as f:
-        re_vocab = json.load(f)
-    return vocab, re_vocab
+    return vocab
 
-def encode(words, vocab):
+def encode(tokens, vocab):
+    """把 token 列表映射成 id 列表，词表外的 token 归入 <unk>(0)"""
     index_list = []
-    for i in words:
-        if vocab['stoi'][i]:
-            index_list.append(vocab['stoi'][i])
-        else:
-            index_list.append(0)
+    for token in tokens:
+        index_list.append(vocab['stoi'].get(token, 0))
     return index_list
 
+
 def decode(index_list, re_vocab):
+    """把 id 列表映射回文字，查不到的显示 <unk>"""
     words = []
     for i in index_list:
-        if re_vocab['re_stoi'][i]:
-            words.append(re_vocab['re_stoi'][i])
-        else:
-            words.append('<unk>')
+        words.append(re_vocab['re_stoi'].get(str(i), '<unk>'))
     return words
-    
+
+
+def encode_set(set_name):
+    """把数据集逐首编码成 token id 序列，落盘为二进制 .bin 供训练直接读取"""
+    vocab = load_vocab()
+    tokenized_set = []
+    with open(DATA_DIR / 'poetry-set' / (set_name+'_set.json'), 'r', encoding='utf-8') as f:
+        poems = json.load(f)
+        for poem in poems:
+
+            tokens = ['<bos>'] + list(poem['title'] + '\n' + poem['content']) + ['<eos>']
+            tokenized_set += encode(tokens, vocab)
+
+    arr = np.array(tokenized_set, dtype=np.uint16)
+    arr.tofile(DATA_DIR / 'poetry-set' / (set_name+'.bin'))
+
 
 if __name__ == '__main__':
     counter = get_counter()
     plot_distribution(counter)
     write_vocab(*build_vocab(counter))
+    encode_set('train')
+    encode_set('test')
