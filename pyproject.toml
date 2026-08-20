@@ -5,6 +5,7 @@ description = "唐诗宋词提取工具"
 requires-python = ">=3.12"
 dependencies = [
     "matplotlib>=3.11.1",
+    "torch>=2.13.0",
 ]
 
 # 不把项目当包来构建，uv 只负责创建虚拟环境和运行脚本
