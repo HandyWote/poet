@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # 让 matplotlib 能显示中文（按顺序尝试系统里的中文字体）
-plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'PingFang SC', 'Hiragino Sans GB', 'STHeiti', 'SimHei']
+plt.rcParams['font.sans-serif'] = ['Noto Sans CJK SC', 'WenQuanYi Micro Hei', 'Arial Unicode MS', 'PingFang SC', 'Hiragino Sans GB', 'STHeiti', 'SimHei']
 plt.rcParams['axes.unicode_minus'] = False
 
 

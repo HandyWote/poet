@@ -13,6 +13,8 @@ DATA_DIR = PROJECT_ROOT / 'data'
 def extra_poetry(path=DATA_DIR / 'chinese-poetry-raw' / '全唐诗', dynasty='song'):
     """读取数据抽取古诗"""
 
+    (DATA_DIR / 'poetry-set').mkdir(parents=True, exist_ok=True)
+
     poems = ''
     with open(DATA_DIR / 'poetry-set' / 'pretice_set.json', 'w', encoding='utf-8') as f:
         for i in os.listdir(path):
