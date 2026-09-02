@@ -51,7 +51,7 @@ class MLP(nn.Module):
         x = self.c_proj(x)
         return x
 
-class CausalSelfAttension(nn.Module):
+class CausalSelfAttention(nn.Module):
     """看i时，从头回看"""
     def __init__(self, config:GPTConfig):
         super().__init__()
@@ -88,6 +88,21 @@ class CausalSelfAttension(nn.Module):
         
         return y
 
+class Block(nn.Module):
+    def __init__(self, config: GPTConfig):
+        super().__init__()
+        self.ln_1 = LayerNorm(config.n_embd, config.bias)
+        self.attn = CausalSelfAttention(config)
+        self.ln_2 = LayerNorm(config.n_embd, config.bias)
+        self.mlp = MLP(config)
+
+    @override
+    def forward(self, x):
+        x = x + self.attn(self.ln_1(x))
+        x = x + self.mlp(self.ln_2(x))
+        return x
+
+
 if __name__ == '__main__':
     gpt = GPTConfig()
     print(gpt)
@@ -107,6 +122,12 @@ if __name__ == '__main__':
     n_params = sum(p.numel() for p in mlp.parameters())
     print(f'MLP的参数量: {n_params:,}')
 
-    attn = CausalSelfAttension(gpt)
+    attn = CausalSelfAttention(gpt)
     y = attn(x)
     print(f'attention 形状: {tuple(y.shape)}, (2, 128, 512)')
+
+    block = Block(gpt)
+    y = block(x)
+    print(f'Block 形状: {tuple(y.shape)}, (2, 128, 512)')
+    n_params = sum(p.numel() for p in block.parameters())
+    print(f'Block 参数量: {n_params:,}, 3,146,752')
