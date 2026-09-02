@@ -102,6 +102,36 @@ class Block(nn.Module):
         x = x + self.mlp(self.ln_2(x))
         return x
 
+class GPT(nn.Module):
+    def __init__(self, config: GPTConfig):
+        super().__init__()
+        self.transformer = nn.ModuleDict(
+            dict(
+                wte=nn.Embedding(config.vocab_size, config.n_embd),
+                wpe=nn.Embedding(config.block_size, config.n_embd),
+                drop=nn.Dropout(config.dropout),
+                h=nn.Sequential(*[Block(config) for _ in range(config.n_layer)]),
+                ln_f=LayerNorm(config.n_embd, config.bias)
+            )
+        )
+        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=config.bias)
+        self.lm_head.weight = self.transformer.wte.weight
+
+    @override
+    def forward(self, idx, targets=None):
+        B, T = idx.shape
+        tok_emb = self.transformer.wte(idx)
+        pos_emb = self.transformer.wpe(torch.arange(T, device=idx.device))
+        x = self.transformer.drop(tok_emb + pos_emb)
+        x = self.transformer.h(x)
+        x = self.transformer.ln_f(x)
+        logits = self.lm_head(x)
+
+        if targets is not None:
+            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
+        else:
+            loss = None
+        return logits, loss
 
 if __name__ == '__main__':
     gpt = GPTConfig()
@@ -131,3 +161,15 @@ if __name__ == '__main__':
     print(f'Block 形状: {tuple(y.shape)}, (2, 128, 512)')
     n_params = sum(p.numel() for p in block.parameters())
     print(f'Block 参数量: {n_params:,}, 3,146,752')
+
+    model = GPT(gpt)
+    n_params = sum(p.numel() for p in model.parameters())
+    print(f'模型参数量: {n_params:,}, 22,733,824 (约22.73M)')
+    idx = torch.randint(0, gpt.vocab_size, (2, gpt.block_size))
+    logits, _ = model(idx)
+    print(f'logits 形状: {tuple(logits.shape)}, (2, 128, 7397)')
+
+    # 随机权重下乱猜的 loss 理论值 = ln(7397) ≈ 8.9088
+    targets = torch.randint(0, gpt.vocab_size, (2, gpt.block_size))
+    logits, loss = model(idx, targets)
+    print(f'随机权重 loss: {loss.item():.4f}, {math.log(gpt.vocab_size):.4f}')
