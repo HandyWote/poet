@@ -6,7 +6,7 @@
     "locale": "zh-CN",
     "output": "docs/init-explained.html",
     "quality_profile": "showcase",
-    "viewBox": [1068, 860]
+    "viewBox": [1068, 600]
   },
   "stages": [
     { "label": "参数来源" },

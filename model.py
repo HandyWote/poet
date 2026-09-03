@@ -55,6 +55,7 @@ class CausalSelfAttention(nn.Module):
     """看i时，从头回看"""
     def __init__(self, config:GPTConfig):
         super().__init__()
+        self.mask: torch.Tensor
         self.n_embd = config.n_embd
         self.n_head = config.n_head
         self.head_size = self.n_embd // self.n_head
@@ -116,6 +117,20 @@ class GPT(nn.Module):
         )
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=config.bias)
         self.lm_head.weight = self.transformer.wte.weight
+
+        # 初始化:普通权重 std=0.02;残差投影 c_proj 按 1/√(2·n_layer) 缩小
+        self.apply(self._init_weights)
+        for name, p in self.named_parameters():
+            if name.endswith('c_proj.weight'):
+                torch.nn.init.normal_(p, mean=0.0, std=0.02 / math.sqrt(2 * config.n_layer))
+
+    def _init_weights(self, module):
+        if isinstance(module, nn.Linear):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+            if module.bias is not None:
+                torch.nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Embedding):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
     @override
     def forward(self, idx, targets=None):
