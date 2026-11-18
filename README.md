@@ -19,7 +19,9 @@ make                    # download data → split dataset → build vocabulary �
 
 ```
 poet/
-├── Makefile                 # Data preparation pipeline entry point
+├── Makefile                 # 数据准备 + 训练流水线入口
+├── model.py                 # 6 层 Transformer（GPT, ~22.7M 参数）
+├── train.py                 # 训练脚本：memmap 取数 → AdamW + cosine LR → checkpoint → 采样
 ├── process/
 │   ├── process.py           # Raw data → train/test JSON (7:3 random split, seed=42)
 │   └── tokenizer.py         # Character frequency stats → vocabulary → dataset encoding (.bin)
@@ -28,6 +30,7 @@ poet/
 ├── data/poetry-set/         # Data artifacts (git-ignored, generated locally by make)
 │   ├── vocab.json / re_vocab.json   # 7,399-token vocabulary (incl. <unk>/<bos>/<eos>)
 │   ├── train.bin / test.bin         # uint16-encoded data, read via memmap during training
+│   ├── checkpoint.pt                # 模型/优化器状态 + 步数（每次评估时滚动覆盖）
 │   └── distribution.png             # Character frequency long-tail distribution and coverage plot
 └── pyproject.toml
 ```
@@ -52,8 +55,8 @@ During training, use `np.memmap(path, dtype=np.uint16, mode='r')` and slice rand
 - [x] Data extraction and split
 - [x] Vocabulary construction (incl. frequency threshold decision record)
 - [x] Dataset encoding (.bin + memmap ready)
-- [ ] `model.py`: 6-layer Transformer (d=512, block_size=128, shared input/output embeddings, ~22.8M params)
-- [ ] `train.py`: cross-entropy + AdamW + cosine LR, checkpoints and sample generation
+- [x] `model.py`: 6-layer Transformer (d=512, block_size=128, shared input/output embeddings, ~22.8M params)
+- [x] `train.py`: cross-entropy + AdamW + cosine LR (warmup + grad clip), rolling checkpoint, top-k 采样
 - [ ] `generate.py`: sample poems after training, evaluate perplexity on the test set
 
 ## References

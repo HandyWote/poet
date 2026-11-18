@@ -3,6 +3,8 @@ import json
 
 from pathlib import Path
 from collections import Counter
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -140,3 +142,4 @@ if __name__ == '__main__':
     write_vocab(*build_vocab(counter))
     encode_set('train')
     encode_set('test')
+    encode_set('eval')

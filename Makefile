@@ -4,6 +4,7 @@
 #   make download  只下载原始数据
 #   make split     只提取切分数据集
 #   make encode    只构建词表并编码
+#   make train     训练模型（数据产物已存在时可直接跑）
 #   make clean     清空数据产物（保留原始数据）
 #
 # 说明：data/ 不进 git，克隆后先 make 下载数据再跑流水线。
@@ -12,7 +13,7 @@ URL = https://github.com/chinese-poetry/chinese-poetry.git
 RAW = data/chinese-poetry-raw/全唐诗
 SET = data/poetry-set
 
-.PHONY: all download split encode clean
+.PHONY: all download split encode train clean
 
 all: encode
 
@@ -36,5 +37,9 @@ $(SET)/.encoded: process/tokenizer.py $(SET)/.split
 	uv run process/tokenizer.py
 	touch $@
 
+# ④ 训练（依赖编码产物；checkpoint 存到 data/poetry-set/checkpoint.pt）
+train: $(SET)/.encoded
+	uv run train.py
+
 clean:
-	rm -rf $(SET)/.split $(SET)/.encoded $(SET)/train.bin $(SET)/test.bin $(SET)/*.json $(SET)/distribution.png
+	rm -rf $(SET)/.split $(SET)/.encoded $(SET)/train.bin $(SET)/test.bin $(SET)/*.json $(SET)/distribution.png $(SET)/checkpoint.pt

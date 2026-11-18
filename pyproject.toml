@@ -5,12 +5,24 @@ description = "唐诗宋词提取工具"
 requires-python = ">=3.12"
 dependencies = [
     "matplotlib>=3.11.1",
-    "torch>=2.13.0",
+    "torch==2.13.0",
 ]
 
 # 不把项目当包来构建，uv 只负责创建虚拟环境和运行脚本
 [tool.uv]
 package = false
+# 允许在所有 index（默认源 + pytorch-rocm）里挑版本，torch 系依赖只在 pytorch-rocm 里有
+index-strategy = "unsafe-best-match"
+
+# ROCm 版 PyTorch（AMD RX 6600 = gfx1032，运行时需 HSA_OVERRIDE_GFX_VERSION=10.3.0）
+[[tool.uv.index]]
+name = "pytorch-rocm"
+url = "https://download.pytorch.org/whl/rocm7.1"
+explicit = false
+
+[tool.uv.sources]
+torch = { index = "pytorch-rocm" }
+triton-rocm = { index = "pytorch-rocm" }
 
 # Zed 默认用 basedpyright 做 Python LSP，它把 unknown/any 类检查默认全开（比 pyright 严格），
 # 本项目代码没有类型标注，这些警告全是噪声，统一关掉。真错误（语法错误、缺依赖、Python2 遗留代码）不受影响。
@@ -19,12 +31,3 @@ package = false
 # （路径相对于 pyproject.toml 所在目录）
 exclude = [".venv", "data/chinese-poetry-raw"]
 
-reportAny = "none"
-reportUnknownMemberType = "none"
-reportUnknownVariableType = "none"
-reportUnknownParameterType = "none"
-reportUnknownArgumentType = "none"
-reportMissingParameterType = "none"
-reportMissingTypeArgument = "none"
-reportUnusedCallResult = "none"
-reportUnannotatedClassAttribute = "none"

@@ -28,7 +28,7 @@ def extra_poetry(path=DATA_DIR / 'chinese-poetry-raw' / '全唐诗', dynasty='so
 
 
 def gen_set():
-    """读取提取的古诗，随机排序之后产生 70% 的训练集 30% 的测试集到 DATA_DIR / 'poetry-set' /"""
+    """读取提取的古诗，随机排序之后产生 70% 的训练集 20% 的测试集 10% 的验证集到 DATA_DIR / 'poetry-set' /"""
     path = DATA_DIR / 'poetry-set' / 'pretice_set.json'
     poems = []
     with open(path, 'r', encoding='utf-8') as f:
@@ -40,16 +40,17 @@ def gen_set():
     random.seed(42)
     random.shuffle(poems)
 
-    split = int(len(poems) * 0.7)
-    train = poems[:split]
-    test = poems[split:]
-
+    train = poems[:int(len(poems)*0.7)]
+    test = poems[int(len(poems)*0.7):int(len(poems)*0.9)]
+    eval = poems[int(len(poems)*0.9):]
     with open(DATA_DIR / 'poetry-set' / 'train_set.json', 'w', encoding='utf-8') as f:
         json.dump(train, f, ensure_ascii=False, indent=2)
     with open(DATA_DIR / 'poetry-set' / 'test_set.json', 'w', encoding='utf-8') as f:
         json.dump(test, f, ensure_ascii=False, indent=2)
+    with open(DATA_DIR / 'poetry-set' / 'eval_set.json', 'w', encoding='utf-8') as f:
+        json.dump(eval, f, ensure_ascii=False, indent=2)
 
-    print(f'共 {len(poems)} 首：训练 {len(train)} 首，测试 {len(test)} 首')
+    print(f'共 {len(poems)} 首：训练 {len(train)} 首，测试 {len(test)} 首，评测 {len(eval)}首')
 
 
 if __name__ == '__main__':
